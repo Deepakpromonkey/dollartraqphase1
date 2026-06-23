@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+html,
+body,
+#root {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+.MuiTypography-root,
+.MuiButton-root,
+.MuiInputBase-root,
+.MuiMenuItem-root,
+.MuiSelect-root,
+.MuiTableCell-root,
+.MuiChip-root {
+    font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+code {
+    font-family: Menlo, Consolas, monospace;
+}
