@@ -61,6 +61,7 @@ export default function CarrierQuestions() {
     const [editing, setEditing]               = useState(null);
     const [newOptionText, setNewOptionText]   = useState('');
     const [saving, setSaving]                 = useState(false);
+    const [loading, setLoading]               = useState(true);
 
     const showError = (msg) => { setErrorMessage(msg); setTimeout(() => setErrorMessage(''), 4000);};
 
@@ -70,37 +71,37 @@ export default function CarrierQuestions() {
 
         const token = localStorage.getItem(import.meta.env.VITE_ACCOUNT_TOKEN);
 
-        if (!token) return;
+        if (!token) {
+            setLoading(false);
+            return;
+        }
 
         setAccountToken(token);
 
         const typesFormData = new FormData();
-
         typesFormData.append('account_token', token);
 
         Api.post('app/customer/answer_types/init', typesFormData, (data) => {
-
             if (data.status) {
-
                 setAnswerTypes(data.answer_types);
-
             }
         });
 
         const listFormData = new FormData();
-
         listFormData.append('account_token', token);
-
         listFormData.append('type', 'Carrier Questions');
 
         Api.post('app/customer/question/list', listFormData, (data) => {
-
             if (data.status) {
-
-                const normalized = (data.records || []).map(q => ({...q,type: q.answer_type || '',options: Array.isArray(q.options) ? q.options : [],required: q.is_required == 1,}));
-                
+                const normalized = (data.records || []).map(q => ({
+                    ...q,
+                    type: q.answer_type || '',
+                    options: Array.isArray(q.options) ? q.options : [],
+                    required: q.is_required == 1,
+                }));
                 setQuestions(normalized);
             }
+            setLoading(false);
         });
         
     }, []);
@@ -145,7 +146,6 @@ export default function CarrierQuestions() {
             return;
         }
         if (editing.type === 'radio' && editing.options.length < 2) {
-            
             showError('Multiple choice questions need at least 2 options.');
             return;
         }
@@ -167,66 +167,42 @@ export default function CarrierQuestions() {
         }
 
         Api.post('app/customer/question/save', formData, (data) => {
-
             setSaving(false);
-
             if (data.status) {
-
                 if (editing.row_id) {
-
                     setQuestions(prev =>
-
                         prev.map(q => q.row_id === editing.row_id ? { ...editing, sort_order } : q)
-
                     );
-
                     showSuccess('Question updated.');
-
                 } else {
-
                     const newQ = { ...editing, row_id: data.row_id || Date.now(), sort_order };
-
                     setQuestions(prev => [...prev, newQ]);
-
                     showSuccess('Question added.');
                 }
-
                 closeDrawer();
-
             } else {
-
                 showError(data.message);
             }
         });
     };
 
     const deleteQuestion = (row_id) => {
-
         const formData = new FormData();
-
         formData.append('account_token', accountToken);
-
         formData.append('row_id', row_id);
 
         Api.post('app/customer/question/remove', formData, (data) => {
-
             if (data.status) {
-
                 setQuestions(prev => prev.filter(q => q.row_id !== row_id));
-
                 showSuccess('Question deleted.');
-
             } else {
-
                 showError(data.message);
             }
         });
     };
 
     const renderTypeBadge = (type) => {
-
         const meta = TYPE_META[type] || { label: type, color: '#374151' };
-
         return (
             <span style={{fontSize: 11,fontWeight: 600,color: meta.color,background: meta.color + '14',borderRadius: 4,padding: '2px 7px',letterSpacing: '0.03em',textTransform: 'uppercase',}}>
                 {meta.label}
@@ -235,61 +211,79 @@ export default function CarrierQuestions() {
     };
 
     const renderQuestionPreview = (q) => {
-
         if (q.type === 'yes_no') {
-
             return (
-
                 <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-
                     <span style={previewPillStyle('#1e40af')}>Yes</span>
-
                     <span style={previewPillStyle('#6b7280')}>No</span>
                 </div>
             );
         }
         if (q.type === 'text') {
-
             return (
-
                 <div style={{ marginTop: 4, height: 28, background: '#f3f4f6', borderRadius: 6, border: '1px solid #e5e7eb' }} />
-
             );
         }
         if (q.type === 'radio' && (q.options || []).length > 0) {
-
             return (
-
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4, width: '100%' }}>
-
                     {(q.options || []).map((opt, i) => (
-
                         <span key={i} style={previewPillStyle('#6b7280')}>{opt}</span>
-
                     ))}
                 </div>
             );
         }
         if (q.type === 'image') {
-
             return (
-
                 <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 6, color: '#9ca3af', fontSize: 12 }}>
-
                     <span><AttachFileIcon fontSize="xsmall" /></span>
-
                     <span>File / image upload</span>
-
                 </div>
             );
         }
         return null;
     };
 
+    const renderSkeleton = () => {
+        const skeletonPulse = {
+            animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            background: '#e5e7eb',
+            borderRadius: 4
+        };
+
+        return (
+            <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
+                <style>{`
+                    @keyframes pulse {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: .4; }
+                    }
+                `}</style>
+                {[1, 2, 3].map((item, index) => (
+                    <div
+                        key={item}
+                        style={{
+                            display: 'flex', alignItems: 'center', padding: '18px 24px',
+                            borderTop: index === 0 ? 'none' : '1px solid #f0f0f0', gap: 16, background: '#fff'
+                        }}
+                    >
+                        <div style={{ ...skeletonPulse, width: 14, height: 16, flexShrink: 0 }} />
+                        <div style={{ flex: 1 }}>
+                            <div style={{ ...skeletonPulse, width: '60%', height: 16, marginBottom: 10 }} />
+                            <div style={{ display: 'flex', gap: 8 }}>
+                                <div style={{ ...skeletonPulse, width: 50, height: 16 }} />
+                                <div style={{ ...skeletonPulse, width: 65, height: 16 }} />
+                            </div>
+                        </div>
+                        <div style={{ ...skeletonPulse, width: 68, height: 30, borderRadius: 6, flexShrink: 0 }} />
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
     const renderDrawer = () => {
-
         if (!editing) return null;
-
         const isEdit = !!editing.row_id;
 
         return (
@@ -300,29 +294,21 @@ export default function CarrierQuestions() {
                 PaperProps={{ sx: { width: { xs: '100vw', sm: 480 }, p: 0 } }}
             >
                 <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-
                     <div style={{ padding: '20px 24px 18px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-
                         <div>
-
                             <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>
                                 {isEdit ? 'Edit question' : 'Add question'}
                             </div>
-
                             <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>
                                 {isEdit ? 'Update the question details below.' : 'Fill in the details for the new question.'}
                             </div>
-
                         </div>
-
                         <IconButton onClick={closeDrawer} size="small">
                             <CloseIcon fontSize="small" />
                         </IconButton>
-
                     </div>
 
                     <div style={{ flex: 1, overflowY: 'auto', padding: '24px', width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
-
                         <TextField
                             label="Question"
                             fullWidth
@@ -336,9 +322,7 @@ export default function CarrierQuestions() {
                         />
 
                         <FormControl fullWidth size="small" sx={{ mb: 3 }}>
-
                             <InputLabel>Answer type</InputLabel>
-
                             <Select
                                 value={editing.type}
                                 label="Answer type"
@@ -384,19 +368,13 @@ export default function CarrierQuestions() {
                                 )}
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
-
                                     {editing.options.map((opt, i) => (
-
                                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#f9fafb', borderRadius: 6, padding: '6px 10px', border: '1px solid #e5e7eb' }}>
-
                                             <DragIndicatorIcon sx={{ fontSize: 16, color: '#9ca3af' }} />
-
                                             <span style={{ flex: 1, fontSize: 14, color: '#111827' }}>{opt}</span>
-                                            
                                             <IconButton size="small" onClick={() => removeOption(i)}>
                                                 <CloseIcon sx={{ fontSize: 14 }} />
                                             </IconButton>
-
                                         </div>
                                     ))}
                                 </div>
@@ -424,9 +402,7 @@ export default function CarrierQuestions() {
                         )}
 
                         <div style={{ marginTop: 28, padding: '16px', background: '#f9fafb', borderRadius: 8, border: '1px solid #e5e7eb', width: '100%', boxSizing: 'border-box' }}>
-
                             <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Preview</div>
-                            
                             <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 6 }}>
                                 {editing.question || <span style={{ color: '#9ca3af' }}>Your question will appear here</span>}
                             </div>
@@ -434,9 +410,7 @@ export default function CarrierQuestions() {
                             {renderQuestionPreview(editing)}
 
                             <div style={{ marginTop: 8 }}>
-
                                 {renderTypeBadge(editing.type)}
-
                                 {editing.required && (
                                     <span style={{ marginLeft: 6, fontSize: 11, color: '#6b7280' }}>· required</span>
                                 )}
@@ -445,7 +419,6 @@ export default function CarrierQuestions() {
                     </div>
 
                     <div style={{ padding: '16px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'space-between' }}>
-
                         {isEdit && (
                             <Btn
                                 size="small"
@@ -489,11 +462,10 @@ export default function CarrierQuestions() {
         );
     };
 
-
     return (
         <Main
-            page="carrier_questions"
-            active_page="carrier_questions"
+            page="carrier-questions"
+            active_page="carrier-questions"
             title="Carrier Questions"
             subtitle="Custom questionnaire every carrier answers during onboarding."
             error_message={errorMessage}
@@ -501,22 +473,16 @@ export default function CarrierQuestions() {
             title_action={[{key: 'add_question',label: 'Add question',onClick: openAdd,}]}
         >
             <div>
-
-                {questions.length === 0 && (
-
+                {loading ? (
+                    renderSkeleton()
+                ) : questions.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '60px 20px', color: '#9ca3af' }}>
-
                         <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>No questions yet</div>
                         <div style={{ fontSize: 13 }}>Click <strong>Add question</strong> to get started.</div>
-
                     </div>
-                )}
-
-                {questions.length > 0 && (
-
+                ) : (
                     <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
                         {questions.map((q, index) => (
-
                             <div
                                 key={q.row_id}
                                 style={{
@@ -528,7 +494,6 @@ export default function CarrierQuestions() {
                                 </div>
 
                                 <div style={{ flex: 1, minWidth: 0 }}>
-
                                     <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 4 }}>
                                         {q.question}
                                     </div>
@@ -541,11 +506,9 @@ export default function CarrierQuestions() {
                                         </span>
 
                                         {q.type === 'radio' && (q.options || []).length > 0 && (
-
                                             <span style={{ fontSize: 12, color: '#9ca3af' }}>
                                                 · {q.options.length} options
                                             </span>
-
                                         )}
                                     </div>
                                 </div>

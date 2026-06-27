@@ -22,27 +22,43 @@ export default function OtpModal({ isOpen, onClose, phone, row_id, onVerifySucce
 
     const inputRefs = useRef([]);
 
-    const sendSms = () => {
+    const sendSms = async () => {
+        try {
+            const response = await fetch(
+                "http://127.0.0.1:8000/api/handle/backend/carriers/connect/sms/send",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        row_id: row_id,
+                    }),
+                }
+            );
 
-        Api.post('handle/backend/carriers/connect/sms/send', {row_id: row_id}, (res) => {
+            const res = await response.json();
 
-            if(res.status){
-            
-                setTimer(30)
-                setSending(false)
-                setResending(false)
-                setCanResend(true)
-                setOtpSent(true)
-            }else{
+            console.log(res);
 
-                setError(res.message)
+            if (res.status) {
+                setTimer(30);
+                setSending(false);
+                setResending(false);
+                setCanResend(true);
+                setOtpSent(true);
+            } else {
+                setError(res.message);
             }
-        })
-    }
+        } catch (error) {
+            console.error("Send SMS Error:", error);
+            setError("Failed to send SMS.");
+        }
+    };
 
     useEffect(() => {
 
-        if(isOpen){
+        if (isOpen) {
 
             setTimeout(() => inputRefs.current[0]?.focus(), 100);
             setOtp(new Array(6).fill(''));
@@ -92,29 +108,47 @@ export default function OtpModal({ isOpen, onClose, phone, row_id, onVerifySucce
         inputRefs.current[5]?.focus();
     };
 
-    const handleVerifySubmit = (e) => {
+    const handleVerifySubmit = async (e) => {
         e.preventDefault();
+
         const code = otp.join('');
-        if(code.length === 6){
-            
-            Api.post('handle/backend/carriers/connect/sms/verify', {row_id: row_id, otp: code}, (res) => {
 
-                if(res.status){
+        if (code.length !== 6) return;
 
-                    onVerifySuccess(res.connect_request);
-                }else{
-
-                    setError(res.message)
+        try {
+            const response = await fetch(
+                `http://127.0.0.1:8000/api/handle/backend/carriers/connect/sms/verify`,
+                {
+                    method: 'POST',
+                      headers: {
+                        Authorization: `Bearer 4|w9eRtO8kzBdvfZhnOC7wi3qKJITIfw1KRCL5Oz605c4d2386`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        row_id: row_id,
+                        otp: code,
+                    }),
                 }
-            })
+            );
+
+            const res = await response.json();
+
+            if (res.status) {
+                onVerifySuccess(res.connect_request);
+            } else {
+                setError(res.message);
+            }
+        } catch (error) {
+            console.error(error);
+            setError('Something went wrong. Please try again.');
         }
     };
 
     return (
         /* Added flex items-center justify-center to the backdrop overlay container */
-       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-gray-100 mx-4 relative">
-                
+
                 <button
                     onClick={onClose}
                     type="button"
@@ -125,16 +159,16 @@ export default function OtpModal({ isOpen, onClose, phone, row_id, onVerifySucce
 
                 <div className="flex flex-col items-center text-center">
                     <h3 className="text-2xl font-bold text-[#111827] mb-2">Verify Phone Number</h3>
-                    
+
                     {otp_sent &&
-                    
+
                         <p className="text-sm text-green-800 mb-2 font-semibold">
                             We sent a 6-digit confirmation code to <span className="font-semibold">{phone}</span>
                         </p>
                     }
 
                     {error !== '' &&
-                            
+
                         <div className="bg-red-50 rounded-lg p-2 mb-2 px-9">
                             <p className="text-red-500 text-xs font-semibold">{error}</p>
                         </div>
@@ -163,7 +197,7 @@ export default function OtpModal({ isOpen, onClose, phone, row_id, onVerifySucce
                         <div className="text-sm mb-8 text-gray-500 flex items-center justify-center flex-col">
 
                             {sending &&
-                            
+
                                 <div className="w-[30px] h-[30px] relative">
                                     <Loader loading={true} size={20} />
                                 </div>
@@ -171,28 +205,28 @@ export default function OtpModal({ isOpen, onClose, phone, row_id, onVerifySucce
 
                             {timer > 0
                                 ?
-                                    (
-                                        can_resend &&
-                                            <p>Resend code in <span className="font-semibold text-gray-700">{timer}s</span></p>
-                                    )
+                                (
+                                    can_resend &&
+                                    <p>Resend code in <span className="font-semibold text-gray-700">{timer}s</span></p>
+                                )
                                 :
-                                    (
-                                        can_resend &&
-                                        
-                                            <Btn    
-                                                size="small"
-                                                onClick={() => {
-                                                    
-                                                    setResending(true)
-                                                    sendSms()
-                                                }}
-                                                className="text-[#1D4ED8] font-semibold hover:underline bg-transparent border-none outline-none"
-                                                loading={resend}
-                                                endIcon={<ArrowRightAlt />}
-                                            >
-                                                Resend Code
-                                            </Btn>
-                            )}
+                                (
+                                    can_resend &&
+
+                                    <Btn
+                                        size="small"
+                                        onClick={() => {
+
+                                            setResending(true)
+                                            sendSms()
+                                        }}
+                                        className="text-[#1D4ED8] font-semibold hover:underline bg-transparent border-none outline-none"
+                                        loading={resend}
+                                        endIcon={<ArrowRightAlt />}
+                                    >
+                                        Resend Code
+                                    </Btn>
+                                )}
                         </div>
 
                         <button

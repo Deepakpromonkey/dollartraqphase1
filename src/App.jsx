@@ -47,6 +47,11 @@ import CarrierNoData from 'pages/app/connect/CarrierNoData';
 import CarrierQuestions from 'pages/app/carrier-questions/CarrierQuestion';
 
 import CarrierConnect from 'pages/app/CarrierConnect/CarrierConnect';
+import SearchVet from 'pages/app/SearchVet/SearchVet';
+
+import ProtectedRoute from 'components/ProtectedRoute';
+import RiskAlerts from 'pages/app/riskalert/RiskAlerts';
+import ScoringWeights from 'pages/app/scoringweight/ScoringWeight';
 
 
 function App(){
@@ -410,65 +415,74 @@ function App(){
                             <Route path=':auto_logout' element={<Logout />} />
                         </Route>
                         
-                        <Route exact={true} path='/dashboard' element={<Dashboard />} />
+                        <Route exact={true} path='/dashboard' element={<ProtectedRoute path="/dashboard"><Dashboard /></ProtectedRoute>} />
 
-                        <Route exact={true} path='/control-tower' element={<ControlTowerList />} />
+                        {/* <Route exact={true} path='/control-tower' element={<ProtectedRoute path="/control-tower"><ControlTowerList /></ProtectedRoute>} /> */}
 
-                        <Route exact={true} path='/shipment' element={<ControlTowerShipment />}>
-                            <Route exact={true} path=':row_id' element={<ControlTowerShipment />} />
+                        <Route exact={true} path='/shipment' element={<ProtectedRoute path="/shipment"><ControlTowerShipment /></ProtectedRoute>}>
+                            <Route exact={true} path=':row_id' element={<ProtectedRoute path="/shipment"><ControlTowerShipment /></ProtectedRoute>} />
                         </Route>
 
-                        <Route exact={true} path='/track-shipment' element={<TrackShipmentForm />}>
-                            <Route exact={true} path=':step' element={<TrackShipmentForm />}>
-                                <Route path=':row_id' element={<TrackShipmentForm />} />
+                        <Route exact={true} path='/track-shipment' element={<ProtectedRoute path="/track-shipment"><TrackShipmentForm /></ProtectedRoute>}>
+                            <Route exact={true} path=':step' element={<ProtectedRoute path="/track-shipment"><TrackShipmentForm /></ProtectedRoute>}>
+                                <Route path=':row_id' element={<ProtectedRoute path="/track-shipment"><TrackShipmentForm /></ProtectedRoute>} />
                             </Route>
                         </Route>
 
-                        <Route exact={true} path='/load-search' element={<LoadSearch />} />
+                        <Route exact={true} path='/load-search' element={<ProtectedRoute path="/load-search"><LoadSearch /></ProtectedRoute>} />
 
-                        <Route exact={true} path='/action-centre' element={<ActionCentre />} />
+                        <Route exact={true} path='/control-tower' element={<ProtectedRoute path="/action-centre"><ActionCentre /></ProtectedRoute>} />
 
-                        <Route exact={true} path='/subscriptions' element={<Subscriptions />} />
+                        <Route exact={true} path='/subscriptions' element={<ProtectedRoute path="/subscriptions"><Subscriptions /></ProtectedRoute>} />
 
-                        <Route exact={true} path='/carriers' element={<ShipmentCarriers />} />
+                        <Route exact={true} path='/carriers' element={<ProtectedRoute path="/carriers"><ShipmentCarriers /></ProtectedRoute>} />
 
-                        <Route exact={true} path='/users' element={<UsersList />} />
+                        <Route exact={true} path='/users' element={<ProtectedRoute path="/users"><UsersList /></ProtectedRoute>} />
 
-                        <Route path="/carriers/search" element={<CarrierSearch />} />
-                        <Route path="/carriers/:row_id" element={<CarrierProfile />} />
+                        <Route path="/carriers/search" element={<ProtectedRoute path="/carriers/search"><CarrierSearch /></ProtectedRoute>} />
+                        <Route path="/carriers/:row_id" element={<ProtectedRoute path="/carriers/:row_id"><CarrierProfile /></ProtectedRoute>} />
 
-                        <Route exact={true} path='/profile' element={<ProfileUpdate />} />
-                        <Route exact={true} path='/profile/password' element={<ProfilePassword />} />
-                        <Route exact={true} path='/profile/carriers/shortlisted' element={<ShortlistedCarriers />}/>
+                        <Route exact={true} path='/profile' element={<ProtectedRoute path="/profile"><ProfileUpdate /></ProtectedRoute>} />
+                        <Route exact={true} path='/profile/password' element={<ProtectedRoute path="/profile/password"><ProfilePassword /></ProtectedRoute>} />
+                        <Route exact={true} path='/profile/carriers/shortlisted' element={<ProtectedRoute path="/profile/carriers/shortlisted"><ShortlistedCarriers /></ProtectedRoute>}/>
 
-                        <Route exact={true} path='/pricing' element={<PricingPage />} />
+                        <Route exact={true} path='/subscribe' element={<ProtectedRoute path="/subscribe"><PricingPage /></ProtectedRoute>} />
 
-                        <Route exact={true} path='/carrier/connect' element={<OnboardPage />}>
+                        
+                             <Route exact={true} path='/carrier/connect' element={<OnboardPage />}>
                             <Route exact={true} path=':row_id' element={<OnboardPage />} />
-                        </Route>
+                            </Route>
+ 
+ 
+                       <Route exact={true} path='/carrier/invalid-access' element={<CarrierNoData />} />
 
-                        <Route exact={true} path='/carrier/invalid-access' element={<CarrierNoData />} />
+                        <Route exact={true} path='/carrier-questions' element={<ProtectedRoute path="/carrier-questions"><CarrierQuestions /></ProtectedRoute>} />
 
-                        <Route exact={true} path='/carrier-questions' element={<CarrierQuestions />} />
+                        <Route exact={true} path='/connected' element={<ProtectedRoute path="/connected"><CarrierConnect /></ProtectedRoute>} /> 
 
-                        <Route exact={true} path='/connected' element={<CarrierConnect />} /> 
+                        <Route path="/searched-carriers" element={<ProtectedRoute path="/searched-carriers"><SearchVet /></ProtectedRoute>} />
 
-                        <Route exact={true} path='/edit' element={<WdFormRouter />}>
-                            <Route path=':main_route' element={<WdFormRouter />}>
-                                <Route path=':module' element={<WdFormRouter />}>
-                                    <Route path=':action' element={<WdFormRouter />}>
-                                        <Route path=':row_id' element={<WdFormRouter />} />
+                       <Route path="/risk-alerts" element={<ProtectedRoute path="/risk-alerts"><RiskAlerts /></ProtectedRoute>} />
+
+                       <Route path="/profile/scoring-weights" element={<ProtectedRoute path="/profile/scoring-weights"><ScoringWeights /></ProtectedRoute>} />
+
+
+                        <Route exact={true} path='/edit' element={<ProtectedRoute path="/edit"><WdFormRouter /></ProtectedRoute>}>
+                            <Route path=':main_route' element={<ProtectedRoute path="/edit"><WdFormRouter /></ProtectedRoute>}>
+                                <Route path=':module' element={<ProtectedRoute path="/edit"><WdFormRouter /></ProtectedRoute>}>
+                                    <Route path=':action' element={<ProtectedRoute path="/edit"><WdFormRouter /></ProtectedRoute>}>
+                                        <Route path=':row_id' element={<ProtectedRoute path="/edit"><WdFormRouter /></ProtectedRoute>} />
                                     </Route>
                                 </Route>
                             </Route>
                         </Route>
 
-                        <Route exact={true} path='/edit' element={<WdFormRouter />}>
-                            <Route path=':main_route' element={<WdFormRouter />}>
-                                <Route path=':module' element={<WdFormRouter />}>
-                                    <Route path=':action' element={<WdFormRouter />}>
-                                        <Route path=':sub_action' element={<WdFormRouter />}>
-                                            <Route path=':row_id' element={<WdFormRouter />} />
+                        <Route exact={true} path='/edit' element={<ProtectedRoute path="/edit"><WdFormRouter /></ProtectedRoute>}>
+                            <Route path=':main_route' element={<ProtectedRoute path="/edit"><WdFormRouter /></ProtectedRoute>}>
+                                <Route path=':module' element={<ProtectedRoute path="/edit"><WdFormRouter /></ProtectedRoute>}>
+                                    <Route path=':action' element={<ProtectedRoute path="/edit"><WdFormRouter /></ProtectedRoute>}>
+                                        <Route path=':sub_action' element={<ProtectedRoute path="/edit"><WdFormRouter /></ProtectedRoute>}>
+                                            <Route path=':row_id' element={<ProtectedRoute path="/edit"><WdFormRouter /></ProtectedRoute>} />
                                         </Route>
                                     </Route>
                                 </Route>

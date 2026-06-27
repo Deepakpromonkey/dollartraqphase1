@@ -39,12 +39,19 @@ function ShortlistedCarriers() {
         loadShortlistedCarriers();
     }, []);
 
+    /* ---------- GET REAL TOKEN FROM LOCALSTORAGE ---------- */
+    function getAccountToken() {
+        return localStorage.getItem(import.meta.env.VITE_ACCOUNT_TOKEN);
+    }
+
     function handleCarrierClick(carrier) {
         navigate('/carriers/' + carrier.carrier_id);
     }
 
     function loadShortlistedCarriers() {
         setLoading(true);
+
+        const account_token = getAccountToken();
 
         fetch(
             `${import.meta.env.VITE_ROOT_PROD}/app/profile/carriers/shortlisted/list`,
@@ -53,10 +60,10 @@ function ShortlistedCarriers() {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${import.meta.env.VITE_BARRIER_TOKEN}`,
-                    'X-ACCOUNT-TOKEN': import.meta.env.VITE_ACCOUNT_TOKEN
+                    'X-ACCOUNT-TOKEN': account_token
                 },
                 body: JSON.stringify({
-                    account_token: import.meta.env.VITE_ACCOUNT_TOKEN
+                    account_token: account_token
                 })
             }
         )
@@ -70,78 +77,69 @@ function ShortlistedCarriers() {
             .finally(() => setLoading(false));
     }
 
-function removeFromShortlist(row_id) {
+    function removeFromShortlist(row_id) {
 
-    setSuccessMessage('');
-    setErrorMessage('');
+        setSuccessMessage('');
+        setErrorMessage('');
 
-    fetch(
-        `${import.meta.env.VITE_ROOT_PROD}/app/profile/carriers/shortlisted/remove`,
-        {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${import.meta.env.VITE_BARRIER_TOKEN}`,
-                'X-ACCOUNT-TOKEN': import.meta.env.VITE_ACCOUNT_TOKEN
-            },
-            body: JSON.stringify({
-                row_id,
-                account_token: import.meta.env.VITE_ACCOUNT_TOKEN
-            })
-        }
-    )
+        const account_token = getAccountToken();
 
-        .then(res => res.json())
+        fetch(
+            `${import.meta.env.VITE_ROOT_PROD}/app/profile/carriers/shortlisted/remove`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${import.meta.env.VITE_BARRIER_TOKEN}`,
+                    'X-ACCOUNT-TOKEN': account_token
+                },
+                body: JSON.stringify({
+                    row_id,
+                    account_token: account_token
+                })
+            }
+        )
+            .then(res => res.json())
+            .then(data => {
 
-        .then(data => {
+                if (data?.status === false) {
 
-            if (data?.status === false) {
+                    setErrorMessage(data?.message);
 
-                setErrorMessage(data?.message);
+                    /* AUTO CLEAR AFTER 4 SEC */
+                    setTimeout(function () {
+                        setErrorMessage('');
+                    }, 4000);
+
+                    return;
+                }
+
+                setCarriers(prev =>
+                    prev.filter(c => c.row_id !== row_id)
+                );
+
+                setTotal(prev => Math.max(prev - 1, 0));
+
+                setSuccessMessage(data?.message);
 
                 /* AUTO CLEAR AFTER 4 SEC */
                 setTimeout(function () {
-
-                    setErrorMessage('');
-
+                    setSuccessMessage('');
                 }, 4000);
 
-                return;
+            })
+            .catch(err => {
 
-            }
+                console.log('Remove failed', err);
 
-            setCarriers(prev =>
-                prev.filter(c => c.row_id !== row_id)
-            );
+                setErrorMessage('Something went wrong');
 
-            setTotal(prev => Math.max(prev - 1, 0));
+                setTimeout(function () {
+                    setErrorMessage('');
+                }, 4000);
 
-            setSuccessMessage(data?.message);
-
-            /* AUTO CLEAR AFTER 4 SEC */
-            setTimeout(function () {
-
-                setSuccessMessage('');
-
-            }, 4000);
-
-        })
-
-        .catch(err => {
-
-            console.log('Remove failed', err);
-
-            setErrorMessage('Something went wrong');
-
-            setTimeout(function () {
-
-                setErrorMessage('');
-
-            }, 4000);
-
-        });
-
-}
+            });
+    }
 
     return (
        <Main active_page="profile" page="shortlisted_carriers" full_width success_message={successMessage} error_message={errorMessage}>

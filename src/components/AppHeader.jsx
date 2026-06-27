@@ -35,13 +35,20 @@ import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
 import AssignmentInd from '@mui/icons-material/AssignmentInd';
 import Password from '@mui/icons-material/Password';
 import Checklist from '@mui/icons-material/Checklist';
+import Group from '@mui/icons-material/Group';
+import SettingsOutlined from '@mui/icons-material/SettingsOutlined';
 
 import PowerSettingsNew from '@mui/icons-material/PowerSettingsNew';
+
 
 import logo from 'assets/images/logo.webp?v=3';
 
 import Time from './Time';
 import Navigation from './Navigation';
+import SearchOverlay from './SearchOverlay';
+import SubscriptionsOutlined from '@mui/icons-material/SubscriptionsOutlined';
+
+
 
 class AppHeader extends Component { 
     constructor(props) {
@@ -68,7 +75,7 @@ class AppHeader extends Component {
             alert_requests: [],
 
             redirect_url: false,
-            search_query: '',
+            search_overlay_open: false,
 
             notification_page: 1,
             notification_reloading: false,
@@ -76,7 +83,10 @@ class AppHeader extends Component {
             profile_links: [
                 {key: "profile_page", label: "Profile", icon: <AssignmentInd />, link: "profile"},
                 {key: "profile_shortlisting", label: "Carriers Shortlisted", icon: <Checklist />, link: "profile/carriers/shortlisted"},
-                {key: "profile_password", label: "Password Update", icon: <Password />, link: "profile/password"},
+                // {key: "profile_password", label: "Password Update", icon: <Password />, link: "profile/password"},
+                {key: "scoring_weights", label: "Scoring Weights", icon: <SettingsOutlined />, link: "profile/scoring-weights"},
+                {key: "users", label: "Users", icon: <Group />, link: "users", permission: "manage_users_roles"},
+                {key:"pricing",label:"Subscription", icon: <SubscriptionsOutlined />, link:"subscribe"}
             ]
         }
 
@@ -120,18 +130,24 @@ class AppHeader extends Component {
             }
         }else{
 
-    const publicPages = [
-        'carrier_search',
-        'carrier_profile'
-    ];
-
-    if(
-        this.props.page &&
-        !publicPages.includes(this.props.page)
-    ){
-        window.location.href = Api.server_url + 'logout';
+            if(this.props.active_link){
+            
+                if(this.props.active_link != '/' && this.props.active_link != 'forgot-password' && this.props.active_link != 'reset-password'){
+                    
+                    window.location.href = Api.server_url + 'logout';
+                }
+            }
+        }
     }
-}
+
+    getFilteredProfileLinks = () => {
+
+        return this.state.profile_links.filter((_link) => {
+
+            if (!_link.permission) return true;
+
+            return Navigation.can(_link.permission);
+        });
     }
 
     renderChilds = (menu_item) => {
@@ -177,41 +193,32 @@ class AppHeader extends Component {
 
                 {this.state.account_token
                     ?
-                        <Box className="flex items-center justify-between container-fluid h-[64px] px-6 shadow-xs border-b border-gray-100 relative">
+                        <Box className="flex items-center container-fluid h-[64px] px-6 shadow-xs border-b border-gray-100 relative gap-10">
 
-                            <Box>
+                            <Box className="flex-shrink-0">
                                 <Link to="/dashboard" className="logo">
-                                    <img src={logo} style={{width: 125}} alt="logo" />
+                                    <img src={logo} style={{width: 125, marginRight:3}} alt="logo" />
                                 </Link>
                             </Box>
 
-                            <div className='border border-gray-200 p-2 px-4 rounded-lg w-[400px] flex items-center justify-start transition hover:bg-slate-50 has-[:focus]:bg-slate-100 has-[:focus]:border-slate-300'>
-
-                                <Search style={{fontSize:16}} className='text-gray-500' />
-                                <input
-                                    type="text"
-                                    placeholder='Search MC, DOT, Company and Phone'
-                                    className='border-none flex-1 pl-3 text-xs'
-                                    value={this.state.search_query}
-                                    onChange={(e) => {
-                                        
-                                        this.setState({search_query: e.target.value})
-                                    }}
-                                    onKeyDown={(e) => {
-
-                                        if(e.key === 'Enter' && this.state.search_query.trim()){
-
-                                            this.setState({redirect_url: `/carriers/search?q=${encodeURIComponent(this.state.search_query.trim())}`})
-                                        }
-                                    }}
-                                />
-                            </div>
-
-                            <Navigation />
+                            <Box className="flex-1 flex justify-center">
+                                <Navigation active_page={this.props.page} />
+                            </Box>
                             
-                            <Toolbar>
+                            <Toolbar className="!ml-0 flex-shrink-0">
 
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+
+                                    <IconButton
+                                        id="search_button"
+                                        size="small"
+                                        aria-label="Search"
+                                        onClick={() => {
+                                            this.setState({search_overlay_open: true});
+                                        }}
+                                    >
+                                        <Search fontSize='small' />
+                                    </IconButton>
 
                                     <IconButton id="notification_button" size="small" onClick={(e) => {
 
@@ -222,6 +229,8 @@ class AppHeader extends Component {
                                             <NotificationsOutlined fontSize='small' />
                                         </Badge>
                                     </IconButton>
+
+                                    <Box sx={{ width: '1px', height: 24, backgroundColor: 'rgba(0,0,0,0.08)', mx: 1 }} />
 
                                     <Button
                                         variant="text"
@@ -236,11 +245,11 @@ class AppHeader extends Component {
                                         <Avatar style={{width:25, height:25}} alt={this.props.user.name} src={this.props.user.profile_pic_url} sx={{background:'linear-gradient(135deg, #3B82F6 0%, #4F46E5 100%)'}} />
 
                                         <span className="ml-2 capitalize font-bold text-xs">
-                                            {this.props.user ? `${this.props.user.first_name} ${this.props.user.last_name}` : ''}
+                                            {this.props.user ? `${this.props.user.first_name} ` : ''}
                                         </span>
                                     </Button>
 
-                                    <Link to="/logout" style={{ display: 'flex', alignItems: 'center' }}>
+                                      <Link to="/logout" style={{ display: 'flex', alignItems: 'center', marginLeft: 8 }}>
                                         <IconButton
                                             edge="end"
                                             color="inherit"
@@ -252,15 +261,6 @@ class AppHeader extends Component {
                                     </Link>
                                 </div>
                             </Toolbar>
-
-                            {/* <Sound
-                                url={require('../../assets/alert_1.mp3')}
-                                playStatus={this.state.alert_sound ? Sound.status.PLAYING : Sound.status.STOPPED}
-                                playFromPosition={0}
-                                onFinishedPlaying={() => {
-                                    this.setState({alert_sound: false})
-                                }}
-                            /> */}
 
                             <Popover
                                 className="notifications-menu-container"
@@ -341,7 +341,7 @@ class AppHeader extends Component {
                                 }}
                             >
     
-                                {this.state.profile_links.map((_profile) => {
+                                {this.getFilteredProfileLinks().map((_profile) => {
     
                                     return (
                                         <MenuItem component={Link} key={_profile.key} to={`/${_profile.link}`} >
@@ -358,11 +358,6 @@ class AppHeader extends Component {
                             <Snackbar
                                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
                                 open={this.state.help_alert}
-                                // onEntered={() => {
-                                //     if(!this.state.alert_sound){
-                                //         this.setState({alert_sound: true})
-                                //     }
-                                // }}
                                 onClick={() => {
                                     this.setState({help_alert: false, alert_sound: false, help_message: ''});
                                 }}
@@ -373,6 +368,17 @@ class AppHeader extends Component {
                             >
                                 <Alert elevation={6} variant="filled" severity="success">{this.state.help_message}</Alert>
                             </Snackbar>
+
+                            <SearchOverlay
+                                open={this.state.search_overlay_open}
+                                onClose={() => this.setState({search_overlay_open: false})}
+                                onSearch={(query, type) => {
+                                    this.setState({
+                                        search_overlay_open: false,
+                                        redirect_url: `/carriers/search?q=${encodeURIComponent(query)}`
+                                    });
+                                }}
+                            />
                         </Box>
                     :
                         null
@@ -382,8 +388,6 @@ class AppHeader extends Component {
     }
 
     routeNotification = (_notification) => {
-
-        // this.readNotification(_notification);
 
         var redirect_url = "/notification-route/" + _notification.route;
         this.setState({redirect_url: redirect_url});
@@ -406,7 +410,6 @@ class AppHeader extends Component {
                                 <ListItemIcon>
                                     <PanTool />
                                 </ListItemIcon>
-                                {/* <ListItemText primary={renderHTML(_notification.message)} secondary={_notification.added_on_formatted} /> */}
                             </ListItem>
                         )
                     })}

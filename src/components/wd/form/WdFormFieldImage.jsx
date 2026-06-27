@@ -156,83 +156,88 @@ class WdFormFieldImage extends Component {
         )
     }
 
-    uploadDoc = (e, field) => {
+uploadDoc = (e, field) => {
 
-        e.preventDefault();
-    
-        let reader = new FileReader();
-        let file = e.target.files[0];
+    e.preventDefault();
 
-        reader.readAsDataURL(file);
+    let reader = new FileReader();
+    let file = e.target.files[0];
 
-        const formData = new FormData();
-        formData.append("tmp_file_name", file);
+    reader.readAsDataURL(file);
 
-        if(field.hasOwnProperty('allowed_types')){
-        
-            formData.append('allowed_types', field.allowed_types);
-        }
+    const formData = new FormData();
+    formData.append("tmp_file_name", file);
 
+    if(field.hasOwnProperty('allowed_types') && field.allowed_types !== ''){
+        formData.append('allowed_types', field.allowed_types);
+    }
+
+    if(field.hasOwnProperty('path') && field.path !== ''){
         formData.append('upload_dir', field.path);
-		
-		var self = this;
-		
-        this.setState({loading: true})
-		
-        Api.post('imageuploader', formData, function (data) {
+    }
 
-            self.setState({loading: false});
+    if(this.props.row_id && this.props.row_id !== ''){
+        formData.append('row_id', this.props.row_id);
+    }
 
-            if(data.status === 'success'){
+    var self = this;
 
-                let url = `${data.random_dir}${data.main_file_name}`;
+    this.setState({loading: true})
 
-                let files_data = {};
+    Api.post('imageuploader', formData, function (data) {
 
-                if(self.props.files_data){
-                
-                    files_data = self.props.files_data;
-                }
+        self.setState({loading: false});
 
-                let input_data = self.props.input_data;
+        if(data.status === 'success'){
 
-                if(field.type === 'file' || field.type === 'image'){
-                
-                    if(!input_data.hasOwnProperty(field.name)){
+            let url = `${data.random_dir}${data.main_file_name}`;
 
-                        input_data[field.name] = ''
-                    }
+            let files_data = {};
 
-                    input_data[field.name] = url;
-                }
+            if(self.props.files_data){
 
-                if(field.type === 'gallery'){
-                
-                    if(!input_data.hasOwnProperty(field.name)){
-
-                        input_data[field.name] = [{path: url, extension: data.extension, url: `${data.media_url}${data.upload_dir}${data.random_dir}${data.main_file_name}`}]
-                    }else{
-
-                        input_data[field.name].push({path: url, extension: data.extension, url: `${data.media_url}${data.upload_dir}${data.random_dir}${data.main_file_name}`})
-                    }
-                }
-
-                files_data[field.name] = {path: url, url: `${data.media_url}${data.upload_dir}${data.random_dir}${data.main_file_name}`, extension: data.extension}
-
-                self.props.updateFilesData(files_data, input_data)
-
-            }else{
-
-                self.setState({error_message: data.message}, () => {
-
-                    window.setTimeout(() => {
-
-                        self.setState({error_message: ''})
-                    }, 5000)
-                });
+                files_data = self.props.files_data;
             }
-        });
-	}
+
+            let input_data = self.props.input_data;
+
+            if(field.type === 'file' || field.type === 'image'){
+
+                if(!input_data.hasOwnProperty(field.name)){
+
+                    input_data[field.name] = ''
+                }
+
+                input_data[field.name] = url;
+            }
+
+            if(field.type === 'gallery'){
+
+                if(!input_data.hasOwnProperty(field.name)){
+
+                    input_data[field.name] = [{path: url, extension: data.extension, url: `${data.media_url}${data.upload_dir}${data.random_dir}${data.main_file_name}`}]
+                }else{
+
+                    input_data[field.name].push({path: url, extension: data.extension, url: `${data.media_url}${data.upload_dir}${data.random_dir}${data.main_file_name}`})
+                }
+            }
+
+            files_data[field.name] = {path: url, url: `${data.media_url}${data.upload_dir}${data.random_dir}${data.main_file_name}`, extension: data.extension}
+
+            self.props.updateFilesData(files_data, input_data)
+
+        }else{
+
+            self.setState({error_message: data.message}, () => {
+
+                window.setTimeout(() => {
+
+                    self.setState({error_message: ''})
+                }, 5000)
+            });
+        }
+    });
+}
 }
 
 export default WdFormFieldImage;

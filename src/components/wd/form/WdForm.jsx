@@ -15,6 +15,8 @@ import Btn from 'components/Btn';
 
 import Skeleton from '@mui/material/Skeleton';
 
+import Dialog from '@mui/material/Dialog';
+
 class WdForm extends Component { 
     constructor(props) {
         super();
@@ -40,19 +42,28 @@ class WdForm extends Component {
         return (
 
             <>
-                {this.props.drawer
-                    ?
-
-                        <Drawer
-                            className={`form-drawer ${this.props.size ? `${this.props.size}` : ''} ${this.props.position ? this.props.position : 'right'}`}
-                            anchor={this.props.position ? this.props.position : 'right'}
-                            open={this.props.open}
-                        >
-                            {this.formBlock()}
-                        </Drawer>
-                    :
-                        this.formBlock()
-                }
+{this.props.drawer
+    ?
+        this.props.position === 'center'
+            ?
+                <Dialog
+                    open={this.props.open}
+                    maxWidth="md"
+                    fullWidth
+                >
+                    {this.formBlock()}
+                </Dialog>
+            :
+                <Drawer
+                    className={`form-drawer ${this.props.size ? `${this.props.size}` : ''} ${this.props.position ? this.props.position : 'right'}`}
+                    anchor={this.props.position ? this.props.position : 'right'}
+                    open={this.props.open}
+                >
+                    {this.formBlock()}
+                </Drawer>
+    :
+        this.formBlock()
+}
 
                 <Snackbar
                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

@@ -46,6 +46,93 @@ class Signin extends Component {
         }
     }
 
+    /**
+     * Reads the logged-in customer object from localStorage.
+     * Returns null if not present / not parsable.
+     */
+    static getUser = () => {
+
+        try {
+
+            var raw = localStorage.getItem(import.meta.env.VITE_ACCOUNT_USER);
+
+            if(!raw){
+
+                return null;
+            }
+
+            return JSON.parse(raw);
+
+        }catch(e){
+
+            return null;
+        }
+    }
+
+    /**
+     * True when the given (or currently logged-in) customer is an
+     * account owner/admin, i.e. users_of is blank/null/undefined.
+     * Admins get every permission regardless of roles_row.
+     */
+    static isAdmin = (user) => {
+
+        var customer = (user !== undefined) ? user : Signin.getUser();
+
+        if(!customer){
+
+            return false;
+        }
+
+        var usersOf = customer.users_of;
+
+        return (usersOf === '' || usersOf === null || usersOf === undefined);
+    }
+
+    /**
+     * Safely parses customer.roles_row.permissions (a JSON string) into
+     * an object. Returns {} if missing / not parsable.
+     */
+    static getPermissions = (user) => {
+
+        var customer = (user !== undefined) ? user : Signin.getUser();
+
+        if(!customer || !customer.roles_row || !customer.roles_row.permissions){
+
+            return {};
+        }
+
+        try {
+
+            return JSON.parse(customer.roles_row.permissions);
+
+        }catch(e){
+
+            return {};
+        }
+    }
+
+    /**
+     * Boolean permission check - use this for simple show/hide UI logic.
+     * Granted only when the permission's value is strictly `true`
+     * (or the user is admin). Values like "partial", "limited", "request",
+     * "one_tier", "dual_control" are intentionally treated as NOT granted
+     * here, since they represent conditional/capped access rather than
+     * full access.
+     */
+    static can = (key, user) => {
+
+        var customer = (user !== undefined) ? user : Signin.getUser();
+
+        if(Signin.isAdmin(customer)){
+
+            return true;
+        }
+
+        var permissions = Signin.getPermissions(customer);
+
+        return permissions[key] === true;
+    }
+
     componentDidMount = () => {
         
        var account_token = localStorage.getItem(import.meta.env.VITE_ACCOUNT_TOKEN);
@@ -107,7 +194,14 @@ class Signin extends Component {
                 that.setState({loading: false});
 
                 if(data.status){
-                
+
+                    // data.customer carries users_of + roles + role_names + roles_row
+                    // (roles_row.permissions / risk_authority) when the customer was
+                    // invited under another account. When users_of is blank, the
+                    // customer is the account owner/admin and gets every permission -
+                    // see Signin.isAdmin() / Signin.can() above. We persist the whole
+                    // object as-is so those static helpers can read it later from
+                    // anywhere in the app without another API call.
                     localStorage.setItem(import.meta.env.VITE_ACCOUNT_TOKEN, data.account_token);
                     localStorage.setItem(import.meta.env.VITE_ACCOUNT_USER, JSON.stringify(data.customer)); 
 
@@ -185,19 +279,29 @@ class Signin extends Component {
                                             </Grid>
                                             <Grid item size={12} sx={{marginTop:'30px'}}>
 
-                                                <TextField
+                                            <TextField
                                                     label="Email ID"
                                                     variant="outlined"
                                                     size="small"
                                                     value={this.state.email}
                                                     onChange={(e) => {
-
-                                                        this.setState({email: e.target.value})
+                                                        this.setState({ email: e.target.value });
                                                     }}
                                                     error={this.state.email_error}
                                                     fullWidth
                                                     helperText={this.state.email_error ? 'Please enter valid email address' : ''}
                                                     autoComplete="off"
+                                                    sx={{
+                                                        '& .MuiInputLabel-root': {
+                                                            color: '#000',
+                                                        },
+                                                        '& .MuiInputLabel-root.Mui-focused': {
+                                                            color: '#000',
+                                                        },
+                                                        '& .MuiOutlinedInput-input': {
+                                                            color: '#000',
+                                                        },
+                                                    }}
                                                 />
                                             </Grid>
 
@@ -205,20 +309,30 @@ class Signin extends Component {
                                             
                                                 <Grid item size={12}>
 
-                                                    <TextField
+                                                   <TextField
                                                         label="Password"
                                                         variant="outlined"
                                                         type="password"
                                                         size="small"
                                                         value={this.state.password}
                                                         onChange={(e) => {
-                                                            
-                                                            this.setState({password: e.target.value})
+                                                            this.setState({ password: e.target.value });
                                                         }}
                                                         error={this.state.password_error}
                                                         fullWidth
                                                         helperText={this.state.password_error ? 'Please enter valid password' : ''}
                                                         autoComplete="off"
+                                                        sx={{
+                                                            '& .MuiInputLabel-root': {
+                                                                color: '#000',
+                                                            },
+                                                            '& .MuiInputLabel-root.Mui-focused': {
+                                                                color: '#000',
+                                                            },
+                                                            '& .MuiOutlinedInput-input': {
+                                                                color: '#000',
+                                                            },
+                                                        }}
                                                     />
                                                 </Grid>
                                             }

@@ -31,12 +31,142 @@ class Navigation extends Component {
         
     }
 
+    /**
+     * Reads the logged-in customer object from localStorage.
+     * Returns null if not present / not parsable.
+     */
+    static getUser = () => {
+
+        try {
+
+            var raw = localStorage.getItem(import.meta.env.VITE_ACCOUNT_USER);
+
+            if(!raw){
+
+                return null;
+            }
+
+            return JSON.parse(raw);
+
+        }catch(e){
+
+            return null;
+        }
+    }
+
+    /**
+     * True when the given (or currently logged-in) customer is an
+     * account owner/admin, i.e. users_of is blank/null/undefined.
+     * Admins get every permission regardless of roles_row.
+     */
+    static isAdmin = (user) => {
+
+        var customer = (user !== undefined) ? user : Navigation.getUser();
+
+        if(!customer){
+
+            return false;
+        }
+
+        var usersOf = customer.users_of;
+
+        return (usersOf === '' || usersOf === null || usersOf === undefined);
+    }
+
+    /**
+     * Safely parses customer.roles_row.permissions (a JSON string) into
+     * an object. Returns {} if missing / not parsable.
+     */
+    static getPermissions = (user) => {
+
+        var customer = (user !== undefined) ? user : Navigation.getUser();
+
+        if(!customer || !customer.roles_row || !customer.roles_row.permissions){
+
+            return {};
+        }
+
+        try {
+
+            return JSON.parse(customer.roles_row.permissions);
+
+        }catch(e){
+
+            return {};
+        }
+    }
+
+    /**
+     * Boolean permission check - granted only when the permission's value
+     * is strictly `true` (or the user is admin). "partial"/"limited"/
+     * "request"/"one_tier"/"dual_control" style values are treated as
+     * NOT granted here since they represent conditional/capped access.
+     */
+    static can = (key, user) => {
+
+        var customer = (user !== undefined) ? user : Navigation.getUser();
+
+        if(Navigation.isAdmin(customer)){
+
+            return true;
+        }
+
+        var permissions = Navigation.getPermissions(customer);
+
+        return permissions[key] === true;
+    }
+
+    /**
+     * Returns the sidebar menu (from modules.json) filtered by permission.
+     * Any item or child can declare a "permission" property in modules.json
+     * (e.g. "permission": "manage_users_roles") - if present, that item is
+     * only shown when Navigation.can(permission) is true. Items with no
+     * "permission" property are always shown, unchanged.
+     * If filtering empties out a parent's childs entirely, the parent
+     * itself is dropped too (no point showing an empty dropdown arrow).
+     */
+    getFilteredMenu = () => {
+
+        var isAllowed = (_item) => {
+
+            if(!_item.hasOwnProperty('permission') || !_item.permission){
+
+                return true;
+            }
+
+            return Navigation.can(_item.permission);
+        };
+
+        return menu
+            .filter(isAllowed)
+            .map((_row) => {
+
+                if(!_row.hasOwnProperty('childs')){
+
+                    return _row;
+                }
+
+                var _filtered_childs = _row.childs.filter(isAllowed);
+
+                return {..._row, childs: _filtered_childs};
+            })
+            .filter((_row) => {
+
+                if(_row.hasOwnProperty('childs')){
+
+                    return _row.childs.length > 0;
+                }
+
+                return true;
+            });
+    }
+
     render () {
-        
+
         return (
 
             <div>
-                <ul className='flex items-center justify-between'>
+                <ul className='flex items-center justify-between flex-nowrap'>
                     {this.renderMenu()}
                 </ul>
             </div>
@@ -47,7 +177,9 @@ class Navigation extends Component {
 
             let menu_links = [];
 
-            menu.forEach((_row) => {
+            let filtered_menu = this.getFilteredMenu();
+
+            filtered_menu.forEach((_row) => {
 
                 if(_row.hasOwnProperty('type') && _row.type === 'divider'){
 
@@ -55,8 +187,7 @@ class Navigation extends Component {
 
                 }else if(_row.hasOwnProperty('link')){
 
-                    const isActive = _row.key === this.props.active_page;
-
+const isActive = _row.link === this.props.active_page;
                     menu_links.push(
                         <li key={_row.key}>
                             
@@ -71,7 +202,7 @@ class Navigation extends Component {
                                         <Icon>{_row.icon}</Icon>
                                     </div> */}
                                     
-                                    <span className='uppercase text-[10px] font-semibold text-gray-600'>{_row.label}</span>
+                                    <span className='uppercase text-[10px] font-semibold text-gray-600 whitespace-nowrap'>{_row.label}</span>
                                 </Button>
                             </Link>
                         </li>
@@ -98,7 +229,7 @@ class Navigation extends Component {
                                 //     this.openMenuItem(_row, e);
                                 // }}
                             >
-                                <span className='uppercase text-[10px] font-semibold'>{_row.label}</span>
+                                <span className='uppercase text-[10px] font-semibold whitespace-nowrap'>{_row.label}</span>
                                 <KeyboardArrowDown className='text-sm text-gray-400' fontSize='small' />
                             </Button>
 

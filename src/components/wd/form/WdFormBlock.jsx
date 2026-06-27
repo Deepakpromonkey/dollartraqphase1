@@ -1470,6 +1470,8 @@ class WdFormBlock extends Component {
                         files_data={this.state.files_data}
                         input_data={this.state.input_data}
 
+                        row_id={this.state.row_id}
+
                         updateFilesData={(files_data, input_data) => {
 
                             this.setState({files_data: files_data})

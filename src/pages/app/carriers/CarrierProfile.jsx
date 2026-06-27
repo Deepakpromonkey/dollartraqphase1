@@ -301,32 +301,37 @@ const [isBankVerified, setIsBankVerified] = useState(false);
 
     }
 
-    function handleConnect(carrierRowId) {
-        fetch(
-            `http://192.168.20.120:8080/api/handle/backend/carriers/connect/request`,
+const handleConnect = async () => {
+    try {
+        const response = await fetch(
+            `https://laravel.dollartraq.com/api/handle/backend/carriers/connect/request`,
             {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${import.meta.env.VITE_BARRIER_TOKEN}`
+                    Authorization: `Bearer 53|N936trVmuQw3lkyiwQy28yxdeCtnu5hEOBiHW9IU57bb2cff`,
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    receiver: carrierRowId,
-                    account_token: accountToken
-                })
+                    receiver: row_id, // or carrier.id
+                }),
             }
-        )
-            .then(function (res) {
-                return res.json();
-            })
-            .then(function (data) {
-                console.log(data);
-            })
-            .catch(function (err) {
-                console.log(err);
-            });
-    }
+        );
 
+        const data = await response.json();
+
+        console.log(data);
+
+        if (response.ok) {
+            alert("Connection request sent successfully.");
+        } else {
+            alert(data.message || "Something went wrong.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Failed to send request.");
+    }
+};
+       
     useEffect(function () {
 
         if (!carrier) {

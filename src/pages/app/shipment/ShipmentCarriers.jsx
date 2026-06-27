@@ -134,7 +134,7 @@ class ShipmentCarriers extends Component {
                 <WdForm                        
                     drawer={true}
                     open={this.state.add_new}
-                    position="bottom"
+                    position="center"
                     size="medium"
                     
                     title='Shipment Carrier'

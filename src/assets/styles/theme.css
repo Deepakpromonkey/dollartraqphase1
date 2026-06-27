@@ -390,3 +390,8 @@ input:focus-visible{outline:none;}
 .side-list a span{margin-left:10px;}
 .side-list a .MuiSvgIcon-root{font-size:15px;}
 
+.MuiDialog-root .form-wrapper{min-height:auto; height:auto;}
+.MuiDialog-root .form-wrapper.medium{width:100%;}
+.MuiDialog-root .form-body{height:auto; overflow:visible;}
+.MuiDialog-root .form-bottom{width:auto !important; position:relative !important; bottom:auto !important; right:auto !important;}
+

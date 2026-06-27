@@ -64,9 +64,9 @@ class LoadSearch extends Component {
 		return (
 
 			<Main
-				active_page="load_search"
+				active_page="load-search"
 
-				page="load_search_list"
+				page="load-search"
 
 				error_message={this.state.error_message}
 				success_message={this.state.success_message}

@@ -1,17 +1,10 @@
 [
-    {
-        "key": "track_shipment_menu", "label": "Track Shipment",
-        "childs": [
-            {"key": "track_shipment", "label": "Track Shipment", "icon": "route", "link": "track-shipment"},
-            {"key": "control_tower", "label": "Control Tower", "icon": "cell_tower", "link": "control-tower"},
-            {"key": "load_search", "label": "Load Search", "icon": "find_replace", "link": "load-search"},
-            {"key": "action_centre", "label": "Action Centre", "icon": "bolt", "link": "action-centre"},
-            {"key": "subscription", "label": "Subscriptions", "icon": "currency_exchange", "link": "subscriptions"}
-        ]
-    },
-    {"key": "pricing", "label": "Pricing", "icon": "search", "link": "pricing"},
-    {"key": "carriers", "label": "Carriers", "icon": "local_shipping", "link": "carriers"},
-    {"key": "users", "label": "Users", "icon": "group", "link": "users"},
+
+    {"key": "searched_carriers", "label": "Search & Vet", "icon": "search", "link": "searched-carriers"},
+    {"key":"connected", "label": "Carriers", "icon": "link", "link": "connected"},
+    {"key": "load_search", "label": "Load Search", "icon": "find_replace", "link": "load-search", "permission": "book_assign_loads"},
+    {"key": "control_tower", "label": "Control Tower", "icon": "bolt", "link": "control-tower"},
+    
     {"key": "carrier_questions", "label": "Carrier Q/A", "icon": "settings", "link": "carrier-questions"},
-    {"key":"connected", "label": "Connected", "icon": "link", "link": "connected"}
+    {"key": "risk_alerts","label": "Risk & Alerts","icon": "warning_amber","link": "risk-alerts"}
 ]

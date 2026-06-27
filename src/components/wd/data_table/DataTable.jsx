@@ -436,7 +436,7 @@ class DataTable extends Component {
                                             }}
                                             className="appearance-none rounded-lg pl-4 pr-5 py-1 text-xs font-bold text-[#475569] cursor-pointer focus:outline-none hover:border-[#cbd5e1]"
                                         >
-                                            {[10, 20, 50, 100].map(n => (
+                                            {[5, 10, 20, 50, 100].map(n => (
                                                 <option key={n} value={n}>{n}</option>
                                             ))}
                                         </select>
@@ -1079,7 +1079,9 @@ class DataTable extends Component {
                         ? this.renderHeaderCell(col, i)
                         : null
                 )}
-                <TableCell sx={{ ...HEAD_CELL, textAlign: 'right' }}>Actions</TableCell>
+               {!this.props.hide_actions && (
+    <TableCell sx={{ ...HEAD_CELL, textAlign: 'right' }}>Actions</TableCell>
+)}
             </TableRow>
         );
     }
@@ -1137,103 +1139,104 @@ class DataTable extends Component {
         );
     }
 
-    renderData = () => {
+renderData = () => {
 
-        const columns = this.props.columns;
+    const columns = this.props.columns;
 
-        if (!columns.length) return null;
+    if (!columns.length) return null;
 
-        const data = this.getData();
+    const data = this.getData();
 
-        if (!data || !data.length) return null;
+    if (!data || !data.length) return null;
 
-        return data.map((_row, n) => {
-            const _n = n;
-            const cols = [];
+    return data.map((_row, n) => {
+        const _n = n;
+        const cols = [];
 
-            columns.forEach((column, idx) => {
-                if (!(column && typeof column === 'object' && column.hasOwnProperty('column'))) return;
+        columns.forEach((column, idx) => {
+            if (!(column && typeof column === 'object' && column.hasOwnProperty('column'))) return;
 
-                let row_data = _row[column.column];
-                const original_value = row_data;
+            let row_data = _row[column.column];
+            const original_value = row_data;
 
-                if (column.search_data?.length) {
-                    const found = column.search_data.find(r => r.key === row_data);
-                    if (found) row_data = found.value;
-                }
+            if (column.search_data?.length) {
+                const found = column.search_data.find(r => r.key === row_data);
+                if (found) row_data = found.value;
+            }
 
-                const row_index = `d_${n}_${idx}_${column.column}`;
+            const row_index = `d_${n}_${idx}_${column.column}`;
 
-                if (column.selectable) {
-                    cols.push(
-                        <TableCell key={`ck_${n}_${idx}`} sx={{ ...CELL_RESET, width: 40 }}>
-                            <Checkbox
-                                color="primary"
-                                size="small"
-                                checked={this.state.checked_rows.indexOf(row_data) > -1}
-                                onChange={() => {
-                                    let cr = this.state.checked_rows;
-                                    let crd = this.state.checked_rows_data;
-                                    if (cr.indexOf(row_data) > -1) {
-                                        cr.splice(cr.indexOf(row_data), 1);
-                                        crd = crd.filter(r => r[column.column] !== row_data);
-                                    } else {
-                                        cr.push(row_data);
-                                        crd.push(_row);
-                                    }
-                                    this.setState({ checked_rows: cr, checked_rows_data: crd }, this.returnCheckedRows);
-                                }}
-                            />
-                        </TableCell>
-                    );
-                } else if (column.renderer) {
-                    const val = typeof column.renderer === 'function'
-                        ? column.renderer(_row, _n, row_data)
-                        : this.props[column.renderer](_row, n, row_data);
-
-                    cols.push(
-                        <EditableCell
-                            original_value={original_value}
-                            key={row_index}
-                            column={column} row={_row} num={_n} row_data={row_data} value={val}
-                            account_token={this.props.account_token}
-                            onClick={(e) => this.setState({ editable_cell: e.target, selected_row_data: column, selected_row_index: _n })}
-                            onCancel={() => this.setState({ selected_row_index: false })}
-                            cell_update_url={column.cell_update_url ?? this.props.cell_update_url}
-                            onUpdate={(rd, col) => this._updateRow(rd, col ?? column)}
-                            sx={CELL_RESET}
-                        />
-                    );
-                } else {
-                    cols.push(
-                        <EditableCell
-                            original_value={original_value}
-                            key={row_index}
-                            column={column} row={_row} num={_n} row_data={row_data} value={row_data}
-                            account_token={this.props.account_token}
-                            onClick={(e) => this.setState({ editable_cell: e.target, selected_row_data: column, selected_row_index: _n })}
-                            onCancel={() => this.setState({ selected_row_index: false })}
-                            cell_update_url={column.cell_update_url ?? this.props.cell_update_url}
-                            onUpdate={(rd) => this._updateRow(rd, column)}
-                            sx={CELL_RESET}
-                        />
-                    );
-                }
-            });
-
-            return (
-                        <TableRow
-                            key={`row_${n}`}
-                            className="group transition-all duration-150"
-                            sx={{
-                                '& td': { ...CELL_RESET },
-                                '&:hover td': {
-                                    backgroundColor: '#f8fafc',
-                                },
+            if (column.selectable) {
+                cols.push(
+                    <TableCell key={`ck_${n}_${idx}`} sx={{ ...CELL_RESET, width: 40 }}>
+                        <Checkbox
+                            color="primary"
+                            size="small"
+                            checked={this.state.checked_rows.indexOf(row_data) > -1}
+                            onChange={() => {
+                                let cr = this.state.checked_rows;
+                                let crd = this.state.checked_rows_data;
+                                if (cr.indexOf(row_data) > -1) {
+                                    cr.splice(cr.indexOf(row_data), 1);
+                                    crd = crd.filter(r => r[column.column] !== row_data);
+                                } else {
+                                    cr.push(row_data);
+                                    crd.push(_row);
+                                }
+                                this.setState({ checked_rows: cr, checked_rows_data: crd }, this.returnCheckedRows);
                             }}
-                        >
-                    {cols}
+                        />
+                    </TableCell>
+                );
+            } else if (column.renderer) {
+                const val = typeof column.renderer === 'function'
+                    ? column.renderer(_row, _n, row_data)
+                    : this.props[column.renderer](_row, n, row_data);
 
+                cols.push(
+                    <EditableCell
+                        original_value={original_value}
+                        key={row_index}
+                        column={column} row={_row} num={_n} row_data={row_data} value={val}
+                        account_token={this.props.account_token}
+                        onClick={(e) => this.setState({ editable_cell: e.target, selected_row_data: column, selected_row_index: _n })}
+                        onCancel={() => this.setState({ selected_row_index: false })}
+                        cell_update_url={column.cell_update_url ?? this.props.cell_update_url}
+                        onUpdate={(rd, col) => this._updateRow(rd, col ?? column)}
+                        sx={CELL_RESET}
+                    />
+                );
+            } else {
+                cols.push(
+                    <EditableCell
+                        original_value={original_value}
+                        key={row_index}
+                        column={column} row={_row} num={_n} row_data={row_data} value={row_data}
+                        account_token={this.props.account_token}
+                        onClick={(e) => this.setState({ editable_cell: e.target, selected_row_data: column, selected_row_index: _n })}
+                        onCancel={() => this.setState({ selected_row_index: false })}
+                        cell_update_url={column.cell_update_url ?? this.props.cell_update_url}
+                        onUpdate={(rd) => this._updateRow(rd, column)}
+                        sx={CELL_RESET}
+                    />
+                );
+            }
+        });
+
+        return (
+            <TableRow
+                key={`row_${n}`}
+                className="group transition-all duration-150"
+                sx={{
+                    '& td': { ...CELL_RESET },
+                    '&:hover td': {
+                        backgroundColor: '#f8fafc',
+                    },
+                }}
+            >
+                {cols}
+
+                {!this.props.hide_actions && (
                     <TableCell sx={{ ...CELL_RESET, textAlign: 'right', width: 120 }}>
                         {this.props.row_actions ? (
                             this.props.row_actions(_row, n)
@@ -1249,11 +1252,8 @@ class DataTable extends Component {
                                         </Link>
                                         <Link to={`/${this.props.view_url}/${_row[this.props.row_id]}`}>
                                             <button className="w-6 h-6 flex items-center justify-center rounded-full bg-white border border-[#e2e8f0] text-[#64748b] hover:border-[#3b82f6] hover:text-[#3b82f6] shadow-sm transition-all">
-
                                                 <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-
                                                     <path d="M4.5 10.5L8 7L4.5 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-
                                                 </svg>
                                             </button>
                                         </Link>
@@ -1262,10 +1262,11 @@ class DataTable extends Component {
                             </div>
                         )}
                     </TableCell>
-                </TableRow>
-            );
-        });
-    }
+                )}
+            </TableRow>
+        );
+    });
+}
 
     _updateRow = (row_data, column) => {
 
@@ -1367,14 +1368,19 @@ class DataTable extends Component {
 
             if (this.props.relaodDone) this.props.relaodDone();
 
-            if (data.status) {
-                this.setState({ no_data: !(data.records?.length > 0) });
+           if (data.status) {
+    this.setState({ no_data: !(data.records?.length > 0) });
 
-                if (this.props.updateData) this.props.updateData(data);
-                else this.setState({ data: data.records });
+    if (this.props.updateData) this.props.updateData(data);
+    else this.setState({ data: data.records });
 
-                this.setState({ total_records: data.total, per_page: data.per_page });
-            }
+    this.setState({ total_records: data.total, per_page: data.per_page });
+
+    // ✅ notify parent how many rows loaded
+    if (this.props.onDataLoad) {
+        this.props.onDataLoad(data.records || []);
+    }
+}
         });
     }
 

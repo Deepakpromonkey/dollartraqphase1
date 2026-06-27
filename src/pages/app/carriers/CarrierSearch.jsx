@@ -95,10 +95,24 @@ function CarrierSearch() {
 
     }, []);
 
-	function handleCarrierClick(carrier) {
-
-        navigate('/carriers/' + carrier.row_id);
+function handleCarrierClick(carrier) {
+ 
+    const formData = new FormData();
+ 
+    if (accountToken) {
+ 
+        formData.append('account_token', accountToken);
     }
+ 
+    formData.append('carrier_id', carrier.row_id);
+   
+    formData.append('dot_no', carrier.dot_number);
+ 
+    Api.post('app/profile/carriers/searched/save', formData, function (data) {
+ 
+        navigate('/carriers/' + carrier.row_id);
+    });
+}
 
     useEffect(function () {
 
@@ -425,7 +439,7 @@ function CarrierSearch() {
 
                                     </div> */}
 
-                                    <Select
+                                    {/* <Select
                                         value={sortBy}
                                         onChange={handleSortChange}
                                         IconComponent={KeyboardArrowDownIcon}
@@ -485,7 +499,7 @@ function CarrierSearch() {
                                             );
                                         })}
 
-                                    </Select>
+                                    </Select> */}
 
                                 </div>
 

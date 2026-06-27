@@ -222,44 +222,52 @@ renderTitleButtons = () => {
                         props['onClick'] = _title_action.onClick;
                     }
 
-                    return (
-                        <Btn 
-                            key={`title_button_${index}`} 
-                            variant="contained"
-               sx={{
-    backgroundColor: (_title_action.backgroundColor || '#00337C') + ' !important',
-    color: (_title_action.textColor || '#ffffff') + ' !important',
-    border: `1px solid ${_title_action.borderColor || 'transparent'}`,
-    borderRadius: '14px !important',
-    textTransform: 'none !important',
-    fontSize: '13px',
-    fontWeight: '600',
-    padding: '8px 20px',
-    boxShadow: 'none !important',
-    mt: 4,
-    '&:hover': {
-        backgroundColor: (_title_action.backgroundColor || '#00337C') + ' !important'
-    }
-}}
-style={{
-    backgroundColor: _title_action.backgroundColor || '#00337C',
-    color: _title_action.textColor || '#ffffff',
-    borderRadius: '14px',
-    textTransform: 'none',
-    fontSize: '13px',
-    fontWeight: '600',
-    padding: '12px 20px',
-    boxShadow: 'none'
-}}
-                            className="ml-0 flex items-center justify-center gap-1.5" 
-                            {...props}
-                        >
+return (
+    <Btn 
+        key={`title_button_${index}`} 
+        variant="contained"
+        disabled={_title_action.disabled || false}
+        sx={{
+            backgroundColor: (_title_action.backgroundColor || '#00337C') + ' !important',
+            color: (_title_action.textColor || '#ffffff') + ' !important',
+            border: `1px solid ${_title_action.borderColor || 'transparent'}`,
+            borderRadius: '14px !important',
+            textTransform: 'none !important',
+            fontSize: '13px',
+            fontWeight: '600',
+            padding: '8px 20px',
+            boxShadow: 'none !important',
+            mt: 4,
+            '&:hover': {
+                backgroundColor: (_title_action.backgroundColor || '#00337C') + ' !important'
+            },
+            '&.Mui-disabled': {
+                backgroundColor: '#f1f5f9 !important',
+                color: '#94a3b8 !important',
+                border: '1px solid #e2e8f0',
+                cursor: 'not-allowed',
+                pointerEvents: 'auto',
+            }
+        }}
+        style={{
+            backgroundColor: _title_action.backgroundColor || '#00337C',
+            color: _title_action.textColor || '#ffffff',
+            borderRadius: '14px',
+            textTransform: 'none',
+            fontSize: '13px',
+            fontWeight: '600',
+            padding: '12px 20px',
+            boxShadow: 'none'
+        }}
+        className="ml-0 flex items-center justify-center gap-1.5" 
+        {...props}
+    >
 {_title_action.icon ? (
     <Icon
         className="mr-1"
         sx={{
             fontSize: 18,
-            color: _title_action.textColor || '#fff'
+            color: _title_action.disabled ? '#94a3b8' : (_title_action.textColor || '#fff')
         }}
     >
         {_title_action.icon}
@@ -275,7 +283,7 @@ style={{
     >
         <path
             d="M6 2V10M2 6H10"
-            stroke={_title_action.textColor || 'white'}
+            stroke={_title_action.disabled ? '#94a3b8' : (_title_action.textColor || 'white')}
             strokeWidth="2.2"
             strokeLinecap="round"
         />

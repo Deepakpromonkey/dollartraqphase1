@@ -212,7 +212,7 @@ function InviteUserForm({ open, onClose, roles, accountToken, usersOf, onSuccess
                     pt: 3.5,
                     pb: 3,
                     display: 'flex',
-                    alignItems: 'flex-start',
+                    alignItems: 'flex-start',  
                     gap: 2,
                     background: `linear-gradient(135deg, ${BRAND_SOFT} 0%, #ffffff 65%)`,
                     borderBottom: `1px solid ${BORDER}`,
@@ -635,7 +635,7 @@ function InviteUserForm({ open, onClose, roles, accountToken, usersOf, onSuccess
                     <WdForm                        
                         drawer={true}
                         open={this.state.add_new}
-                        position="bottom"
+                        position="center"
                         size="medium"
                         
                         title='Sub User'

@@ -19,9 +19,9 @@ function CarrierProfileSection(props) {
 
             <div className='overflow-hidden rounded-[16px] border border-[#d9e1ee] bg-white shadow-[0_2px_8px_rgba(16,24,40,0.06)]'>
 
-                <div className='flex flex-col gap-[24px] bg-gradient-to-r from-[#0E57C0] via-[#1a55cf] to-[#1E40AF] px-[20px] py-[24px] md:px-[28px] md:py-[26px] xl:flex-row xl:items-start xl:justify-between xl:px-[36px] xl:py-[28px]'>
+               <div className='flex flex-col gap-[24px] bg-gradient-to-r from-[#0E57C0] via-[#1a55cf] to-[#1E40AF] px-[20px] py-[24px] md:px-[28px] md:py-[26px] xl:flex-row xl:items-center xl:justify-between xl:px-[36px] xl:py-[28px]'>
 
-                    <div className='min-w-0'>
+                    <div className='min-w-0 flex flex-col justify-center'>
 
                         <div className='mb-[10px] text-[10px] font-[700] uppercase tracking-[0.14em] text-white/55 sm:text-[11px]'>
                              DBM: {renderValue(props.subtitle)}
@@ -33,7 +33,7 @@ function CarrierProfileSection(props) {
 
                     </div>
 
-                    <div className='flex w-full flex-col gap-[12px] sm:flex-row sm:flex-wrap xl:w-auto xl:justify-end xl:gap-[16px]'>
+                  <div className='flex w-full flex-col gap-[12px] sm:flex-row sm:flex-wrap xl:w-auto xl:justify-end xl:gap-[16px] xl:mt-[18px]'>
 
                         {(props.actions || []).map(function (action, index) {
 
